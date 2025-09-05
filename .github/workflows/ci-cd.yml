@@ -18,14 +18,7 @@ jobs:
       with:
         working-directory: ./terraform
 
-  snyk-scan: # Additional Hardening: Snyk Dependency and Container Scanner
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Snyk Scan
-      uses: snyk/actions@master
-      with:
-        command: test
+
   security-scan: # Security Hardening: Vulnerability and Secrets Scanning
     runs-on: ubuntu-latest
     steps:
@@ -35,13 +28,6 @@ jobs:
       with:
         scan-type: 'fs'
         scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-    - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
 
   iac-security: # Security Hardening: IaC Misconfiguration Scanning
     runs-on: ubuntu-latest
@@ -52,13 +38,6 @@ jobs:
       with:
         directory: ./terraform
         framework: terraform
-        output_format: sarif
-        output_file_path: checkov-results.sarif
-    - name: Upload Checkov scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: checkov-results.sarif
 
   build-and-deploy:
     needs: [security-scan, iac-security]

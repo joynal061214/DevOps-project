@@ -20,6 +20,32 @@ resource "aws_s3_bucket" "deel_test_app_bucket" {
     environment     = "dev"
   }
 }
+
+resource "aws_s3_bucket_public_access_block" "deel_test_app_bucket" {
+  bucket = aws_s3_bucket.deel_test_app_bucket.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "deel_test_app_bucket" {
+  bucket = aws_s3_bucket.deel_test_app_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "deel_test_app_bucket" {
+  bucket = aws_s3_bucket.deel_test_app_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
       
     
 
@@ -30,10 +56,14 @@ resource "aws_ecr_repository" "deel_test_ip_app" {
     environment     = "dev"
   }
   name                 = "deel-test-app"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
   }
 }
 
@@ -64,22 +94,23 @@ resource "aws_security_group" "ecs_tasks" {
     environment     = "dev"
   }
   name_prefix = "deel-test-app-ecs-tasks"
+  description = "Security group for ECS tasks"
   vpc_id      = var.app_vpc_id
 
   ingress {
-    protocol         = "tcp"
-    from_port        = 8080
-    to_port          = 8080
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    description     = "Allow traffic from ALB"
+    protocol        = "tcp"
+    from_port       = 8080
+    to_port         = 8080
+    security_groups = [aws_security_group.alb.id]
   }
 
   egress {
-    protocol         = "-1"
-    from_port        = 0
-    to_port          = 0
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    description = "Allow all outbound traffic"
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -108,9 +139,10 @@ resource "aws_ecs_task_definition" "deel_ip_app" {
 
   container_definitions = jsonencode([
     {
-  name      = "deel-test-app"
+      name      = "deel-test-app"
       image     = var.image_uri
       essential = true
+      readonlyRootFilesystem = true
 
       portMappings = [
         {
@@ -146,7 +178,7 @@ resource "aws_ecs_service" "deel_ip_app" {
   network_configuration {
     security_groups  = [aws_security_group.ecs_tasks.id]
     subnets          = var.subnet_ids
-    assign_public_ip = true
+    assign_public_ip = false
   }
 
   load_balancer {
@@ -164,11 +196,12 @@ resource "aws_lb" "deel_ip_app_lb" {
     resourcecreator = "joynal.abedin@gmx.co.uk"
     environment     = "dev"
   }
-  name               = "deel-test-app-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = var.subnet_ids
+  name                       = "deel-test-app-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = var.subnet_ids
+  drop_invalid_header_fields = true
 
   enable_deletion_protection = false
 }
@@ -179,9 +212,11 @@ resource "aws_security_group" "alb" {
     environment     = "dev"
   }
   name_prefix = "deel-test-app-alb"
+  description = "Security group for Application Load Balancer"
   vpc_id      = var.app_vpc_id
 
   ingress {
+    description      = "Allow HTTP traffic from internet"
     protocol         = "tcp"
     from_port        = 80
     to_port          = 80
@@ -190,11 +225,11 @@ resource "aws_security_group" "alb" {
   }
 
   egress {
-    protocol         = "-1"
-    from_port        = 0
-    to_port          = 0
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    description = "Allow all outbound traffic"
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -240,7 +275,7 @@ resource "aws_cloudwatch_log_group" "ecs_log_group" {
     environment     = "dev"
   }
   name              = "/ecs/deel-test-app"
-  retention_in_days = 30
+  retention_in_days = 365
 }
 
 # IAM Role for ECS Task Execution
