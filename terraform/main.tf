@@ -46,6 +46,19 @@ resource "aws_s3_bucket_versioning" "deel_test_app_bucket" {
     status = "Enabled"
   }
 }
+
+resource "aws_s3_bucket_lifecycle_configuration" "deel_test_app_bucket" {
+  bucket = aws_s3_bucket.deel_test_app_bucket.id
+
+  rule {
+    id     = "delete_old_versions"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+}
       
     
 
@@ -203,7 +216,13 @@ resource "aws_lb" "deel_ip_app_lb" {
   subnets                    = var.subnet_ids
   drop_invalid_header_fields = true
 
-  enable_deletion_protection = false
+  enable_deletion_protection = true
+
+  access_logs {
+    bucket  = aws_s3_bucket.deel_test_app_bucket.id
+    prefix  = "alb-logs"
+    enabled = true
+  }
 }
 
 resource "aws_security_group" "alb" {
