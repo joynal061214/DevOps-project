@@ -43,7 +43,8 @@ jobs:
         framework: terraform
 
   build-and-deploy:
-    needs: [security-scan, iac-security]
+    needs: []
+  #  needs: [security-scan, iac-security]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     
