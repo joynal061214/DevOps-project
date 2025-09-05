@@ -2,13 +2,11 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+  
 
 env:
-  AWS_REGION: eu-west-2
-  ECR_REPOSITORY: deel-test-app
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
 
 jobs:
   tfsec-scan: # Additional Hardening: TFSec IaC Security Scanner
