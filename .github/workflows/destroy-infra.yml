@@ -30,6 +30,7 @@ jobs:
 
       - name: Import Existing Resources
         working-directory: ./terraform
+        continue-on-error: true
         run: |
             echo "Importing S3 Bucket..."
             terraform import aws_s3_bucket.deel_test_app_bucket deel-test-app-bucket-dev || echo "S3 bucket already imported"
@@ -47,20 +48,33 @@ jobs:
             echo "Importing IAM Role..."
             terraform import aws_iam_role.ecs_task_execution_role deel-test-app-ecs-task-execution-role || echo "IAM role already imported"
 
+            echo "Importing Security Groups..."
+            ECS_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=deel-test-app-ecs-tasks*" --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null || echo "")
+            if [ ! -z "$ECS_SG_ID" ] && [ "$ECS_SG_ID" != "None" ]; then
+              terraform import aws_security_group.ecs_tasks $ECS_SG_ID || echo "ECS security group already imported"
+            fi
+
+            ALB_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=deel-test-app-alb*" --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null || echo "")
+            if [ ! -z "$ALB_SG_ID" ] && [ "$ALB_SG_ID" != "None" ]; then
+              terraform import aws_security_group.alb $ALB_SG_ID || echo "ALB security group already imported"
+            fi
+
+            echo "Importing Load Balancer..."
+            ALB_ARN=$(aws elbv2 describe-load-balancers --names deel-test-app-alb --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null || echo "")
+            if [ ! -z "$ALB_ARN" ] && [ "$ALB_ARN" != "None" ]; then
+              terraform import aws_lb.deel_ip_app_lb $ALB_ARN || echo "Load balancer already imported"
+            fi
+
 
 
 
       - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform plan -generate-config-out=generated.tf -var-file="envVars/dev/dev.tfvars" 2>&1
-      
+        continue-on-error: true
+        run: terraform plan -var-file="envVars/dev/dev.tfvars" 2>&1
 
 
-    #   - name: Terraform apply
-    #     working-directory: ./terraform
-    #     run: terraform apply -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1
-
-    #   - name: Terraform Destroy 
+    #   - name: Terraform Destroy
     #     working-directory: ./terraform
     #     run: terraform destroy -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1 | tee terraform-destroy.log
 
