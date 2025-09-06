@@ -93,7 +93,7 @@ jobs:
     
     - name: Terraform Init
       working-directory: ./terraform
-      run: terraform init
+      run: terraform init -backend-config="envVars/dev/backend.tf"
     
     - name: Terraform Plan
       working-directory: ./terraform
