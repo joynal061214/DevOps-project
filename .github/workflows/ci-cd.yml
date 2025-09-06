@@ -2,25 +2,14 @@ name: Build and Deploy docker image in ECS with GitHub action
 
 on:
   push:
-  # the branch is set to deel_ip_test in git env var for testing purpose.
 
 env:
-  LOG_FILE: build-report.log
-  MAIL_RECIPIENTS: ${{ vars.MAIL_RECIPIENTS }}
-  BRANCH_NAME: ${{ github.ref_name }}
-  DOCKER_ENV: ${{ vars.DOCKER_ENV }}
-  AWS_ENV: ${{ vars.AWS_ENV }}
-  GIT_PROJECT_SLUG: ${{ vars.GIT_PROJECT_SLUG }}
-  GIT_TEAM_NAME: ${{ vars.GIT_TEAM_NAME }}
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-  #DEPLOY_BRANCH: deel_ip_test
-
+  AWS_REGION: eu-west-2
+  ECR_REPOSITORY: deel-test-app
 
 jobs:
-  tfsec-scan: # Additional Hardening: TFSec IaC Security Scanner
+  security-scan:
     runs-on: ubuntu-latest
-   # environment: dev
     continue-on-error: true
     steps:
     - uses: actions/checkout@v4
@@ -28,20 +17,13 @@ jobs:
       uses: aquasecurity/tfsec-action@v1.0.3
       with:
         working-directory: ./terraform
-
-
-  security-scan: # Security Hardening: Vulnerability and Secrets Scanning
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-    - uses: actions/checkout@v4
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
         scan-ref: '.'
 
-  iac-security: # Security Hardening: IaC Misconfiguration Scanning
+  iac-security:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -58,13 +40,8 @@ jobs:
     if: github.ref_name == 'deel_ip_test' || github.ref_name == 'main'
     
     steps:
-    - name: Debug Environment Variables
-      run: printenv 
-
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
-        # --- Security Hardening: Vulnerability and Secrets Scanning ---
     - name: Debug secrets
       run: |
         echo "Branch: ${{ github.ref_name }}"
@@ -74,12 +51,12 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-region: eu-west-2
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        #aws-region: ${{ vars.AWS_REGION }}
+        aws-region: eu-west-2
         
-        
+    - name: Test AWS credentials
+      run: aws sts get-caller-identity
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -93,7 +70,6 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        # --- Security Hardening: IaC Misconfiguration Scanning ---
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
