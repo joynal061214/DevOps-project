@@ -69,6 +69,8 @@ jobs:
         #aws-region: ${{ vars.AWS_REGION }}
         aws-region: eu-west-2
         
+    - name: Test AWS credentials
+      run: aws sts get-caller-identity
 
     - name: Login to Amazon ECR
       id: login-ecr
