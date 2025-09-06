@@ -20,12 +20,20 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.13.1
+          terraform_version: 1.6.0
 
       - name: Terraform Init
         working-directory: ./terraform
         timeout-minutes: 5
         run: terraform init -backend-config="envVars/dev/backend.tf" -lock=false
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -var-file="envVars/dev/dev.tfvars" 2>&1
+
+      - name: Terraform apply
+        working-directory: ./terraform
+        run: terraform apply -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1
 
       - name: Terraform Destroy 
         working-directory: ./terraform
