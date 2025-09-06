@@ -110,7 +110,7 @@ jobs:
       working-directory: ./terraform
       continue-on-error: true
       run: |
-        run: terraform force-unlock -force abef8197-e4f8-225a-f682-707a40fdb14d
+        terraform force-unlock -force abef8197-e4f8-225a-f682-707a40fdb14d
     
     - name: Terraform Plan
       working-directory: ./terraform
