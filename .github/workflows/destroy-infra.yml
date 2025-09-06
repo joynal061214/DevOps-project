@@ -32,22 +32,23 @@ jobs:
             --region eu-west-2
     
       
-      - name: Force unlock state
-        working-directory: ./terraform
-        continue-on-error: true
-        run: terraform force-unlock -force 18d6c883-a231-2eaa-6fea-3f225f4cb54d
+      
 
       - name: Terraform Init
         working-directory: ./terraform
         timeout-minutes: 5
         run: terraform init -backend-config="envVars/dev/backend.tf" -lock=false
 
+    #   - name: Force unlock state
+    #     working-directory: ./terraform
+    #     continue-on-error: true
+    #     run: |
+    #         aws dynamodb scan --table-name deel-test-app-bucket-locks --query 'Items[0].LockID.S' --output text | xargs -r terraform force-unlock -force      
+      
       - name: Force unlock state
         working-directory: ./terraform
         continue-on-error: true
-        run: |
-            aws dynamodb scan --table-name deel-test-app-bucket-locks --query 'Items[0].LockID.S' --output text | xargs -r terraform force-unlock -force      
-
+        run: terraform force-unlock -force 18d6c883-a231-2eaa-6fea-3f225f4cb54d
 
 
 
