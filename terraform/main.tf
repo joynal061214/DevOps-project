@@ -17,7 +17,7 @@ resource "aws_s3_bucket" "deel_test_app_bucket" {
     Name            = "deel-test-app-bucket"
     Environment     = var.environment
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
 }
 
@@ -54,10 +54,40 @@ resource "aws_s3_bucket_lifecycle_configuration" "deel_test_app_bucket" {
     id     = "delete_old_versions"
     status = "Enabled"
 
+    filter {
+      prefix = ""
+    }
+
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
   }
+}
+
+resource "aws_s3_bucket_policy" "deel_test_app_bucket" {
+  bucket = aws_s3_bucket.deel_test_app_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::652711504416:root"
+        }
+        Action   = "s3:PutObject"
+        Resource = "${aws_s3_bucket.deel_test_app_bucket.arn}/alb-logs/*"
+      },
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "delivery.logs.amazonaws.com"
+        }
+        Action   = "s3:PutObject"
+        Resource = "${aws_s3_bucket.deel_test_app_bucket.arn}/alb-logs/*"
+      }
+    ]
+  })
 }
       
     
@@ -66,7 +96,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "deel_test_app_bucket" {
 resource "aws_ecr_repository" "deel_test_ip_app" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name                 = "deel-test-app"
   image_tag_mutability = "IMMUTABLE"
@@ -104,7 +134,7 @@ data "aws_subnet" "public" {
 resource "aws_security_group" "ecs_tasks" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name_prefix = "deel-test-app-ecs-tasks"
   description = "Security group for ECS tasks"
@@ -131,7 +161,7 @@ resource "aws_security_group" "ecs_tasks" {
 resource "aws_ecs_cluster" "main" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name = "deel-test-app-cluster"
 
@@ -180,7 +210,7 @@ resource "aws_ecs_task_definition" "deel_ip_app" {
 resource "aws_ecs_service" "deel_ip_app" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name            = "deel-test-app"
   cluster         = aws_ecs_cluster.main.id
@@ -207,7 +237,7 @@ resource "aws_ecs_service" "deel_ip_app" {
 resource "aws_lb" "deel_ip_app_lb" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name                       = "deel-test-app-alb"
   internal                   = false
@@ -228,7 +258,7 @@ resource "aws_lb" "deel_ip_app_lb" {
 resource "aws_security_group" "alb" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name_prefix = "deel-test-app-alb"
   description = "Security group for Application Load Balancer"
@@ -255,7 +285,7 @@ resource "aws_security_group" "alb" {
 resource "aws_lb_target_group" "deel_ip_app" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name        = "deel-test-app-tg"
   port        = 8080
@@ -291,7 +321,7 @@ resource "aws_lb_listener" "deel_ip_app" {
 resource "aws_cloudwatch_log_group" "ecs_log_group" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name              = "/ecs/deel-test-app"
   retention_in_days = 365
@@ -301,7 +331,7 @@ resource "aws_cloudwatch_log_group" "ecs_log_group" {
 resource "aws_iam_role" "ecs_task_execution_role" {
   tags = {
     resourcecreator = "joynal.abedin@gmx.co.uk"
-    environment     = "dev"
+    environment     = var.environment
   }
   name = "deel-test-app-ecs-task-execution-role"
 
