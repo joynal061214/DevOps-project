@@ -55,7 +55,7 @@ jobs:
   build-and-deploy:
     needs: [security-scan, iac-security]
     runs-on: ubuntu-latest
-    if: github.ref_name == vars.DEPLOY_BRANCH || 'main'
+    if: github.ref_name == 'deel_ip_test' || github.ref_name == 'main'
     
     steps:
     - uses: actions/checkout@v4
