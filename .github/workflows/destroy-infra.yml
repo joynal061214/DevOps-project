@@ -29,7 +29,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform plan -var-file="envVars/dev/dev.tfvars" 2>&1
+        run: terraform plan -generate-config-out=generated.tf -var-file="envVars/dev/dev.tfvars" 2>&1
 
       - name: Terraform apply
         working-directory: ./terraform
