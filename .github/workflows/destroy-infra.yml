@@ -27,20 +27,45 @@ jobs:
         timeout-minutes: 5
         run: terraform init -backend-config="envVars/dev/backend.tf" -lock=false
 
+
+      - name: Import Existing Resources
+        working-directory: ./terraform
+        run: |
+            echo "Importing S3 Bucket..."
+            terraform import aws_s3_bucket.deel_test_app_bucket deel-test-app-bucket-dev || echo "S3 bucket already imported"
+
+            echo "Importing ECR Repository..."
+            terraform import aws_ecr_repository.deel_test_ip_app deel-test-app || echo "ECR repo already imported"
+
+            echo "Importing ALB Target Group..."
+            TG_ARN=$(aws elbv2 describe-target-groups --names deel-test-app-tg --region eu-west-2 --query 'TargetGroups[0].TargetGroupArn' --output text)
+            terraform import aws_lb_target_group.deel_ip_app $TG_ARN || echo "Target group already imported"
+
+            echo "Importing CloudWatch Log Group..."
+            terraform import aws_cloudwatch_log_group.ecs_log_group /ecs/deel-test-app || echo "Log group already imported"
+
+            echo "Importing IAM Role..."
+            terraform import aws_iam_role.ecs_task_execution_role deel-test-app-ecs-task-execution-role || echo "IAM role already imported"
+
+
+
+
       - name: Terraform Plan
         working-directory: ./terraform
         run: terraform plan -generate-config-out=generated.tf -var-file="envVars/dev/dev.tfvars" 2>&1
+      
 
-      - name: Terraform apply
-        working-directory: ./terraform
-        run: terraform apply -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1
 
-      - name: Terraform Destroy 
-        working-directory: ./terraform
-        run: terraform destroy -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1 | tee terraform-destroy.log
+    #   - name: Terraform apply
+    #     working-directory: ./terraform
+    #     run: terraform apply -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1
 
-      - name: Upload Destroy Log
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-destroy-log
-          path: ./terraform/terraform-destroy.log
+    #   - name: Terraform Destroy 
+    #     working-directory: ./terraform
+    #     run: terraform destroy -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1 | tee terraform-destroy.log
+
+    #   - name: Upload Destroy Log
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: terraform-destroy-log
+    #       path: ./terraform/terraform-destroy.log
