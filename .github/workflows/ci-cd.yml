@@ -22,7 +22,8 @@ jobs:
 
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Run TFSec
         uses: aquasecurity/tfsec-action@v1.0.3
@@ -34,12 +35,6 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: '.'
-
-  
-    
- 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
 
       - name: Run Checkov IaC scanner
         uses: bridgecrewio/checkov-action@master
