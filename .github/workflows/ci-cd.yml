@@ -99,10 +99,22 @@ jobs:
       working-directory: ./terraform
       env:
         TF_VAR_image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
-      run: terraform plan
+      run: terraform plan 2>&1 | tee plan.log
+
+    - name: Upload Terraform Plan Log
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-plan-log  
+        path: ./terraform/plan.log
     
     - name: Terraform Apply
       working-directory: ./terraform
       env:
         TF_VAR_image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
-      run: terraform apply -auto-approve
+      run: terraform apply -auto-approve 2>&1 | tee terraform-apply.log
+
+    - name: Upload Terraform Apply Log
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-apply-log
+        path: ./terraform/terraform-apply.log
