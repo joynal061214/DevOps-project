@@ -93,7 +93,8 @@ jobs:
     
     - name: Terraform Init
       working-directory: ./terraform
-      run: terraform init -backend-config="envVars/dev/backend.tf"
+      timeout-minutes: 5
+      run: terraform init -backend-config="envVars/dev/backend.tf" -lock=false
     
     - name: Terraform Plan
       working-directory: ./terraform
@@ -118,3 +119,30 @@ jobs:
       with:
         name: terraform-apply-log
         path: ./terraform/terraform-apply.log
+
+
+    # can be added later
+
+    - name: Get commit message
+      if: always()
+      id: get_commit_message
+      run: |
+        COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+        echo "message=$COMMIT_MSG" >> $GITHUB_OUTPUT
+        echo "Commit message: $COMMIT_MSG" 
+
+    - name: Send a notification email with the build result
+      if: always()  # Ensures the email is sent on both success and failure  
+      uses: reusable-workflows/send-email@v1
+      env:
+          SEND_EMAIL_subject: ${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}
+          SEND_EMAIL_body: |
+            ${{ github.workflow }} pipeline ${{ github.job }} job has a ${{ job.status }} status.
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            Commit Message: ${{ steps.get_commit_message.outputs.message }}
+            If you want to view run details:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SEND_EMAIL_recipients: ${{ vars.MAIL_RECIPIENTS }}
+          GITH_COM_TOKEN: ${{ secrets.MY_GIT_HUB_COM_TOKEN }}
+          SEND_EMAIL_attachments: ${{ env.LOG_FILE }}	
