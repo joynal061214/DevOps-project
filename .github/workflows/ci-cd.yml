@@ -14,7 +14,7 @@ env:
   GIT_TEAM_NAME: ${{ vars.GIT_TEAM_NAME }}
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-  DEPLOY_BRANCH: deel_ip_test
+  #DEPLOY_BRANCH: deel_ip_test
 
 
 jobs:
@@ -58,19 +58,28 @@ jobs:
     if: github.ref_name == 'deel_ip_test' || github.ref_name == 'main'
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Debug Environment Variables
+      run: printenv 
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
     
         # --- Security Hardening: Vulnerability and Secrets Scanning ---
+    - name: Debug secrets
+      run: |
+        echo "Branch: ${{ github.ref_name }}"
+        echo "AWS_ACCESS_KEY_ID set: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}"
+        echo "AWS_SECRET_ACCESS_KEY set: ${{ secrets.AWS_SECRET_ACCESS_KEY != '' }}"
+    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
+        aws-region: eu-west-2
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         #aws-region: ${{ vars.AWS_REGION }}
-        aws-region: eu-west-2
         
-    - name: Test AWS credentials
-      run: aws sts get-caller-identity
+        
 
     - name: Login to Amazon ECR
       id: login-ecr
