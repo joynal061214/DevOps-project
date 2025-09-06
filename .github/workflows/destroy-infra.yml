@@ -89,6 +89,12 @@ jobs:
               terraform import aws_lb.deel_ip_app_lb $ALB_ARN || echo "Load balancer already imported"
             fi
 
+            echo "Importing ECS Cluster..."
+            terraform import aws_ecs_cluster.main deel-test-app-cluster || echo "ECS cluster already imported"
+
+            echo "Importing ECS Service..."
+            terraform import aws_ecs_service.deel_ip_app deel-test-app-cluster/deel-test-app || echo "ECS service already imported"
+
 
 
 
