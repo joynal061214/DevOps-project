@@ -102,7 +102,7 @@ jobs:
       run: terraform plan 2>&1 | tee plan.log
 
     - name: Upload Terraform Plan Log
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: terraform-plan-log  
         path: ./terraform/plan.log
@@ -114,7 +114,7 @@ jobs:
       run: terraform apply -auto-approve 2>&1 | tee terraform-apply.log
 
     - name: Upload Terraform Apply Log
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: terraform-apply-log
         path: ./terraform/terraform-apply.log
