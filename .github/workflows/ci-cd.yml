@@ -1,16 +1,27 @@
-name: CI/CD Pipeline
+name: Build and Deploy docker image in ECS with GitHub action
 
 on:
   push:
-  
+  # the branch is set to deel_ip_test in git env var for testing purpose.
 
 env:
+  env:
+  LOG_FILE: build-report.log
+  MAIL_RECIPIENTS: ${{ vars.MAIL_RECIPIENTS }}
+  BRANCH_NAME: ${{ github.ref_name }}
+  DOCKER_ENV: ${{ vars.DOCKER_ENV }}
+  AWS_ENV: ${{ vars.AWS_ENV }}
+  GIT_PROJECT_SLUG: ${{ vars.GIT_PROJECT_SLUG }}
+  GIT_TEAM_NAME: ${{ vars.GIT_TEAM_NAME }}
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+  DEPLOY_BRANCH: deel_ip_test
+
 
 jobs:
   tfsec-scan: # Additional Hardening: TFSec IaC Security Scanner
     runs-on: ubuntu-latest
+   # environment: dev
     continue-on-error: true
     steps:
     - uses: actions/checkout@v4
@@ -46,7 +57,7 @@ jobs:
     needs: []
   #  needs: [security-scan, iac-security]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == format('refs/heads/{0}', env.DEPLOY_BRANCH)
     
     steps:
     - uses: actions/checkout@v4
