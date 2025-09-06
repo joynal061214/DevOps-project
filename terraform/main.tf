@@ -5,10 +5,6 @@ terraform {
       version = ">= 4.0"
     }
   }
-  
-  backend "s3" {
-    # Backend config will be provided via -backend-config flag
-  }
 }
 
 provider "aws" {
@@ -225,7 +221,7 @@ resource "aws_ecs_service" "deel_ip_app" {
   network_configuration {
     security_groups  = [aws_security_group.ecs_tasks.id]
     subnets          = var.subnet_ids
-    assign_public_ip = false
+    assign_public_ip = true
   }
 
   load_balancer {
