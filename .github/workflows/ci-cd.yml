@@ -49,9 +49,9 @@ jobs:
           framework: terraform
 
   build-and-deploy:
-    #needs: [security-scan]
-    needs: []
+    needs: [security-scan]
     runs-on: ubuntu-latest
+    environment: dev
     if: github.ref_name == 'deel_ip_test' || github.ref_name == 'main'
     
     steps:
