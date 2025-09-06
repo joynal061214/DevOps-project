@@ -110,8 +110,8 @@ jobs:
       working-directory: ./terraform
       continue-on-error: true
       run: |
-        aws dynamodb scan --table-name deel-test-app-bucket-locks --query 'Items[0].LockID.S' --output text | xargs -r terraform force-unlock -force
-    
+        # aws dynamodb scan --table-name deel-test-app-bucket-locks --query 'Items[0].LockID.S' --output text | xargs -r terraform force-unlock -force
+        run: terraform force-unlock -force abef8197-e4f8-225a-f682-707a40fdb14d
     
     - name: Terraform Plan
       working-directory: ./terraform
