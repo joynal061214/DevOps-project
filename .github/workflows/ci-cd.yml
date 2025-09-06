@@ -19,7 +19,6 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION }}
       ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
     
-
     
     steps:
       - name: Checkout Repository

@@ -52,48 +52,48 @@ jobs:
 
 
 
-      - name: Import Existing Resources
-        working-directory: ./terraform
-        continue-on-error: true
-        run: |
-            echo "Importing S3 Bucket..."
-            terraform import aws_s3_bucket.deel_test_app_bucket deel-test-app-bucket-dev || echo "S3 bucket already imported"
+    #   - name: Import Existing Resources
+    #     working-directory: ./terraform
+    #     continue-on-error: true
+    #     run: |
+    #         echo "Importing S3 Bucket..."
+    #         terraform import aws_s3_bucket.deel_test_app_bucket deel-test-app-bucket-dev || echo "S3 bucket already imported"
 
-            echo "Importing ECR Repository..."
-            terraform import aws_ecr_repository.deel_test_ip_app deel-test-app || echo "ECR repo already imported"
+    #         echo "Importing ECR Repository..."
+    #         terraform import aws_ecr_repository.deel_test_ip_app deel-test-app || echo "ECR repo already imported"
 
-            echo "Importing ALB Target Group..."
-            TG_ARN=$(aws elbv2 describe-target-groups --names deel-test-app-tg --region eu-west-2 --query 'TargetGroups[0].TargetGroupArn' --output text)
-            terraform import aws_lb_target_group.deel_ip_app $TG_ARN || echo "Target group already imported"
+    #         echo "Importing ALB Target Group..."
+    #         TG_ARN=$(aws elbv2 describe-target-groups --names deel-test-app-tg --region eu-west-2 --query 'TargetGroups[0].TargetGroupArn' --output text)
+    #         terraform import aws_lb_target_group.deel_ip_app $TG_ARN || echo "Target group already imported"
 
-            echo "Importing CloudWatch Log Group..."
-            terraform import aws_cloudwatch_log_group.ecs_log_group /ecs/deel-test-app || echo "Log group already imported"
+    #         echo "Importing CloudWatch Log Group..."
+    #         terraform import aws_cloudwatch_log_group.ecs_log_group /ecs/deel-test-app || echo "Log group already imported"
 
-            echo "Importing IAM Role..."
-            terraform import aws_iam_role.ecs_task_execution_role deel-test-app-ecs-task-execution-role || echo "IAM role already imported"
+    #         echo "Importing IAM Role..."
+    #         terraform import aws_iam_role.ecs_task_execution_role deel-test-app-ecs-task-execution-role || echo "IAM role already imported"
 
-            echo "Importing Security Groups..."
-            ECS_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=deel-test-app-ecs-tasks*" --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null || echo "")
-            if [ ! -z "$ECS_SG_ID" ] && [ "$ECS_SG_ID" != "None" ]; then
-              terraform import aws_security_group.ecs_tasks $ECS_SG_ID || echo "ECS security group already imported"
-            fi
+    #         echo "Importing Security Groups..."
+    #         ECS_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=deel-test-app-ecs-tasks*" --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null || echo "")
+    #         if [ ! -z "$ECS_SG_ID" ] && [ "$ECS_SG_ID" != "None" ]; then
+    #           terraform import aws_security_group.ecs_tasks $ECS_SG_ID || echo "ECS security group already imported"
+    #         fi
 
-            ALB_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=deel-test-app-alb*" --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null || echo "")
-            if [ ! -z "$ALB_SG_ID" ] && [ "$ALB_SG_ID" != "None" ]; then
-              terraform import aws_security_group.alb $ALB_SG_ID || echo "ALB security group already imported"
-            fi
+    #         ALB_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=deel-test-app-alb*" --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null || echo "")
+    #         if [ ! -z "$ALB_SG_ID" ] && [ "$ALB_SG_ID" != "None" ]; then
+    #           terraform import aws_security_group.alb $ALB_SG_ID || echo "ALB security group already imported"
+    #         fi
 
-            echo "Importing Load Balancer..."
-            ALB_ARN=$(aws elbv2 describe-load-balancers --names deel-test-app-alb --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null || echo "")
-            if [ ! -z "$ALB_ARN" ] && [ "$ALB_ARN" != "None" ]; then
-              terraform import aws_lb.deel_ip_app_lb $ALB_ARN || echo "Load balancer already imported"
-            fi
+    #         echo "Importing Load Balancer..."
+    #         ALB_ARN=$(aws elbv2 describe-load-balancers --names deel-test-app-alb --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null || echo "")
+    #         if [ ! -z "$ALB_ARN" ] && [ "$ALB_ARN" != "None" ]; then
+    #           terraform import aws_lb.deel_ip_app_lb $ALB_ARN || echo "Load balancer already imported"
+    #         fi
 
-            echo "Importing ECS Cluster..."
-            terraform import aws_ecs_cluster.main deel-test-app-cluster || echo "ECS cluster already imported"
+    #         echo "Importing ECS Cluster..."
+    #         terraform import aws_ecs_cluster.main deel-test-app-cluster || echo "ECS cluster already imported"
 
-            echo "Importing ECS Service..."
-            terraform import aws_ecs_service.deel_ip_app deel-test-app-cluster/deel-test-app || echo "ECS service already imported"
+    #         echo "Importing ECS Service..."
+    #         terraform import aws_ecs_service.deel_ip_app deel-test-app-cluster/deel-test-app || echo "ECS service already imported"
 
 
 
