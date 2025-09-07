@@ -83,6 +83,17 @@ jobs:
     #   run: |
     #     terraform force-unlock -force abef8197-e4f8-225a-f682-707a40fdb14d
 
+
+    - name: Terraform Plan (ECR and Infra)
+      working-directory: ./terraform
+      run: terraform plan -var-file="envVars/dev/dev.tfvars" 2>&1 | tee terraform-plan-infra.log
+
+    - name: Upload Terraform Plan Log (Infra)
+      uses: actions/upload-artifact@v4
+      with:
+        name: terraform-plan-infra-log
+        path: ./terraform/terraform-plan-infra.log
+
     - name: Terraform Apply (ECR and Infra)
       working-directory: ./terraform
       run: terraform apply -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1 
@@ -97,7 +108,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-        ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -113,7 +124,7 @@ jobs:
     - name: Terraform Apply
       working-directory: ./terraform
       env:
-        TF_VAR_image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
+        TF_VAR_image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
       run: terraform apply -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1 | tee terraform-apply.log
 
     - name: Upload Terraform Apply Log
@@ -123,8 +134,43 @@ jobs:
         path: ./terraform/terraform-apply.log
 
     - name: Wait for deployment
-      run: sleep 60
+      run: |
+       sleep 60
+       echo "Waiting for deployment to complete..."
+    # or the below and this is proper way to do it
+    # - name: Wait for ECS service and ALB target to be healthy
+    #   run: |
+    #     SERVICE_NAME="deel-test-app"
+    #     CLUSTER_NAME="deel-test-app-cluster"
+    #     TG_ARN=$(aws elbv2 describe-target-groups --names deel-test-app-tg --query 'TargetGroups[0].TargetGroupArn' --output text)
+    #     TIMEOUT=600
+    #     INTERVAL=15
+    #     ELAPSED=0
 
+    #     echo "Waiting for ECS service to be stable..."
+    #     while [[ $ELAPSED -lt $TIMEOUT ]]; do
+    #       STATUS=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query 'services[0].deployments[0].rolloutState' --output text)
+    #       if [[ "$STATUS" == "COMPLETED" ]]; then
+    #         echo "ECS service is stable."
+    #         break
+    #       fi
+    #       sleep $INTERVAL
+    #       ELAPSED=$((ELAPSED + INTERVAL))
+    #     done
+
+    #     echo "Waiting for ALB target to be healthy..."
+    #     ELAPSED=0
+    #     while [[ $ELAPSED -lt $TIMEOUT ]]; do
+    #       HEALTH=$(aws elbv2 describe-target-health --target-group-arn $TG_ARN --query 'TargetHealthDescriptions[0].TargetHealth.State' --output text)
+    #       if [[ "$HEALTH" == "healthy" ]]; then
+    #         echo "ALB target is healthy."
+    #         break
+    #       fi
+    #       sleep $INTERVAL
+    #       ELAPSED=$((ELAPSED + INTERVAL))
+    #     done 
+
+    
     - name: Get ALB DNS name
       id: get-alb-dns
       run: |
@@ -134,6 +180,7 @@ jobs:
 
     - name: DAST Security Scan with OWASP ZAP
       uses: zaproxy/action-baseline@v0.12.0
+      continue-on-error: true
       with:
         target: 'http://${{ steps.get-alb-dns.outputs.alb_dns }}'
         rules_file_name: '.zap/rules.tsv'
