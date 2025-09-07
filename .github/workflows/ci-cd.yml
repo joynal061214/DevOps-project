@@ -21,11 +21,7 @@ jobs:
     
     
     steps:
-    - name: Ensure /zap/wrk/ is writable for ZAP
-      run: |
-        mkdir -p /zap/wrk/
-        chmod -R a+w /zap/wrk/
-  
+      
     - name: Checkout Repository
       uses: actions/checkout@v4
 
@@ -120,7 +116,11 @@ jobs:
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-        
+    - name: Ensure /zap/wrk/ is writable for ZAP
+      run: |
+        mkdir -p /zap/wrk/
+        chmod -R a+w /zap/wrk/
+            
     - name: Terraform Apply
       working-directory: ./terraform
       env:
