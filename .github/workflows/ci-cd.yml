@@ -77,15 +77,15 @@ jobs:
       timeout-minutes: 5
       run: terraform init
 
-    - name: Force unlock state
-      working-directory: ./terraform
-      continue-on-error: true
-      run: |
-        terraform force-unlock -force abef8197-e4f8-225a-f682-707a40fdb14d
+    # - name: Force unlock state
+    #   working-directory: ./terraform
+    #   continue-on-error: true
+    #   run: |
+    #     terraform force-unlock -force abef8197-e4f8-225a-f682-707a40fdb14d
 
     - name: Terraform Apply (ECR and Infra)
       working-directory: ./terraform
-      run: terraform apply -auto-approve
+      run: terraform apply -var-file="envVars/dev/dev.tfvars" -auto-approve 2>&1 
 
     - name: Login to Amazon ECR
       id: login-ecr
