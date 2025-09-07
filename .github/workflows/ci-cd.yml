@@ -21,26 +21,31 @@ jobs:
     
     
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Ensure /zap/wrk/ is writable for ZAP
+      run: |
+        mkdir -p /zap/wrk/
+        chmod -R a+w /zap/wrk/
+  
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-      - name: Run TFSec
-        uses: aquasecurity/tfsec-action@v1.0.3
-        continue-on-error: true
-        with:
-          working-directory: ./terraform
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
+    - name: Run TFSec
+      uses: aquasecurity/tfsec-action@v1.0.3
+      continue-on-error: true
+      with:
+        working-directory: ./terraform
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
 
-      - name: Run Checkov IaC scanner
-        uses: bridgecrewio/checkov-action@master
-        continue-on-error: true
-        with:
-          directory: ./terraform
-          framework: terraform
+    - name: Run Checkov IaC scanner
+      uses: bridgecrewio/checkov-action@master
+      continue-on-error: true
+      with:
+        directory: ./terraform
+        framework: terraform
 
   build-and-deploy:
     needs: [security-scan]
@@ -115,12 +120,7 @@ jobs:
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-    - name: Upload Terraform Plan Log
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-plan-log  
-        path: ./terraform/plan.log
-    
+        
     - name: Terraform Apply
       working-directory: ./terraform
       env:

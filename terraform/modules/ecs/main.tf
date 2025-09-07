@@ -67,8 +67,21 @@ resource "aws_ecs_task_definition" "task_definition" {
           awslogs-stream-prefix = var.container_name
         }
       }
+
+      mountPoints = [
+        {
+          containerPath = "/tmp"
+          sourceVolume  = "tmp-volume"
+          readOnly      = false
+        }
+      ]
     }
   ])
+
+  volume {
+    name      = "tmp-volume"
+    host_path = "/tmp"
+  }
 }
 
 resource "aws_ecs_service" "service" {
