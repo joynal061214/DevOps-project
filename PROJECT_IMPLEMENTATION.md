@@ -1,5 +1,7 @@
 # Deel IP Application - AWS ECS Fargate Implementation
 
+Please note: I have developed this on Windows using VS code so you might have an issue with LF will be replaced by CRLF in all terraform file if you test this on any Linux.
+
 ## Project Overview
 A containerised web application that displays client IP addresses in reversed format, deployed on AWS ECS Fargate with complete CI/CD automation.
 

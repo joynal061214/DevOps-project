@@ -104,7 +104,7 @@ jobs:
     - name: Terraform Init
       working-directory: ./terraform
       timeout-minutes: 5
-      run: terraform init -backend-config="envVars/dev/backend.tf" -lock=false
+      run: terraform init
 #  aws dynamodb scan --table-name deel-test-app-bucket-locks --query 'Items[0].LockID.S' --output text | xargs -r terraform force-unlock -force
     - name: Force unlock state
       working-directory: ./terraform

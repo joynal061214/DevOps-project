@@ -21,7 +21,7 @@ Visit `http://localhost:8080` to see your deeld IP.
 
 ## Deployment
 
-The application is automatically deployed via GitHub Actions when code is pushed to the `main` branch.
+The application is automatically deployed via GitHub Actions when code is pushed to the `deel_ip_test` branch.
 
 ### Prerequisites
 

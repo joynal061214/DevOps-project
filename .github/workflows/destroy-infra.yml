@@ -1,3 +1,6 @@
+# Created this file for performing destroy operation of infra as it is not safe to do in CI/CD pipeline. So it is for personal use. commented some code for future use. Also added import code for existing resources if needed in future.
+# Also added force-unlock code for terraform state locking issue if it happens in future.
+
 name: Destroy Infrastructure
 
 on:
