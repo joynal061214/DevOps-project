@@ -1,5 +1,10 @@
 # Deel Test App Documentation
 
+Please note: I have developed this on Windows using VS code so you might have an issue with LF will be replaced by CRLF in all terraform file if you test this on any Linux.
+
+Also there is a ReadMe file for Screenshoots.
+
+
 ## Overview
 
 Deel Test App is a Python Flask application containerized with Docker and provisioned for cloud deployment using Terraform. It is designed for easy local development, containerization, and infrastructure-as-code deployment.
