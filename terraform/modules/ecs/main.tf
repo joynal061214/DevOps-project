@@ -79,8 +79,7 @@ resource "aws_ecs_task_definition" "task_definition" {
   ])
 
   volume {
-    name      = "tmp-volume"
-    host_path = "/tmp"
+    name = "tmp-volume"
   }
 }
 
