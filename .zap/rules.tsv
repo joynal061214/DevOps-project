@@ -1,0 +1,7 @@
+# ZAP Custom Rules File
+# Format: <alertid> <action> <optional-comment>
+# Example: 10010 IGNORE "Ignore missing X-Frame-Options header"
+
+10010 IGNORE "Ignore missing X-Frame-Options header"
+10020 WARN "Warn on missing Content Security Policy"
+10030 FAIL "Fail on SQL Injection vulnerability"
