@@ -1,9 +1,19 @@
-output "load_balancer_dns" {
-  description = "DNS name of the load balancer"
-  value       = aws_lb.deel_ip_app_lb.dns_name
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = module.alb.alb_dns_name
+}
+
+output "ecr_repository_url" {
+  description = "URL of the ECR repository"
+  value       = module.ecr.repository_url
+}
+
+output "ecs_cluster_name" {
+  description = "Name of the ECS cluster"
+  value       = module.ecs.cluster_id
 }
 
 output "s3_bucket_name" {
-  description = "Name of the S3 bucket created for deel-test-app"
-  value       = aws_s3_bucket.deel_test_app_bucket.bucket
+  description = "Name of the S3 bucket"
+  value       = module.s3.bucket_id
 }

@@ -1,7 +1,3 @@
-variable "image_uri" {
-  description = "Docker image URI for the ECS task"
-  type        = string
-}
 variable "aws_region" {
   description = "AWS region"
   type        = string
@@ -9,18 +5,28 @@ variable "aws_region" {
 }
 
 variable "environment" {
-  description = "Deployment environment (e.g., dev, prod)"
+  description = "Environment name"
   type        = string
   default     = "dev"
 }
 
+variable "image_uri" {
+  description = "Docker image URI"
+  type        = string
+}
+
 variable "app_vpc_id" {
-  description = "VPC ID to deploy resources into"
+  description = "VPC ID for the application"
   type        = string
 }
 
 variable "subnet_ids" {
-  description = "List of subnet IDs to deploy resources into"
+  description = "List of subnet IDs"
   type        = list(string)
 }
 
+variable "ResourceCreator" {
+  description = "Resource creator email"
+  type        = string
+#  default     = "joynal.abedin@gmx.co.uk"
+}
