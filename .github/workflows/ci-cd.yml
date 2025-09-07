@@ -118,9 +118,9 @@ jobs:
 
     - name: Ensure /zap/wrk/ is writable for ZAP
       run: |
-        mkdir -p /zap/wrk/
-        chmod -R a+w /zap/wrk/
-            
+        mkdir -p /.zap/wrk/
+        chmod -R a+w /.zap/wrk/
+
     - name: Terraform Apply
       working-directory: ./terraform
       env:
